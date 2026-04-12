@@ -1,0 +1,22 @@
+name: Restart Container (Staging)
+
+on:
+  workflow_dispatch:  # manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: SSH into EC2 and Restart Container
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST_STAGING }}           # EC2 host address
+          username: ubuntu       # EC2 username (e.g., ubuntu)
+          key: ${{ secrets.EC2_SSH_KEY_STAGING }}      
+          script: |
+            # Restart postgres container
+            docker restart postgres-container
+
+            # Restart cravee-backend container
+            docker restart cravee-backend

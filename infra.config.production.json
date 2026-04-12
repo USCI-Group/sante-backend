@@ -1,0 +1,36 @@
+{
+  "sql_servers": [
+    {
+      "host": "43.217.198.75:5432",
+      "tls_config": {
+        "disabled": true
+      },
+      "databases": {
+        "sante": {
+          "max_connections": 70,
+          "min_connections": 10,
+          "username": { "$env": "DB_USERNAME" },
+          "password": { "$env": "DB_PASSWORD" }
+        }
+      }
+    }
+  ],
+  "secrets": {
+    "ENV": {"$env": "ENV"},
+    "ORIGIN": {"$env": "ORIGIN"},
+    "DB_USERNAME": {"$env": "DB_USERNAME"},
+    "DB_PASSWORD": {"$env": "DB_PASSWORD"},
+    "JWT_SECRET_KEY": {"$env": "JWT_SECRET_KEY"},
+    "AWS_S3_BUCKET_NAME": {"$env": "AWS_S3_BUCKET_NAME"},
+    "AWS_REGION": {"$env": "AWS_REGION"},
+    "AWS_ACCESS_KEY_ID": {"$env": "AWS_ACCESS_KEY_ID"},
+    "AWS_SECRET_ACCESS_KEY": {"$env": "AWS_SECRET_ACCESS_KEY"},
+    "AWS_SES_SENDER_EMAIL": {"$env": "AWS_SES_SENDER_EMAIL"},
+    "AWS_SES_ACCESS_KEY_ID": {"$env": "AWS_SES_ACCESS_KEY_ID"},
+    "AWS_SES_ACCESS_KEY": {"$env": "AWS_SES_ACCESS_KEY"},
+    "FIREBASE_PRIVATE_KEY_ID": {"$env": "FIREBASE_PRIVATE_KEY_ID"},
+    "FIREBASE_PRIVATE_KEY_ID_PRETZLEY_MEMBERSHIP": {"$env": "FIREBASE_PRIVATE_KEY_ID_PRETZLEY_MEMBERSHIP"},
+    "SANTE_GOOGLE_AUTH_CLIENT_ID": {"$env": "SANTE_GOOGLE_AUTH_CLIENT_ID"}
+  }
+}
+  

@@ -1,0 +1,18 @@
+name: Create Invoice Cronjob (Staging)
+
+on:
+  workflow_dispatch:  # manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: SSH into EC2 and Create Invoice Cronjob
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST_STAGING }}           # EC2 host address
+          username: ubuntu       # EC2 username (e.g., ubuntu)
+          key: ${{ secrets.EC2_SSH_KEY_STAGING }}      
+          script: |
+            (crontab -l 2>/dev/null | grep -v 'curl -s http://localhost:8081/api/e-invoice/submit-e-invoices-cron'; echo "0 16 * * * curl -s http://localhost:8081/api/e-invoice/submit-e-invoices-cron") | crontab -
