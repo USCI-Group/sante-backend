@@ -31,7 +31,7 @@ func (m *MaybankProvider) InitiatePayment(ctx context.Context, order *models.Ord
 	}, nil
 }
 
-func (m *MaybankProvider) VerifyWebhook(ctx context.Context, rawData interface{}) (*WebhookResult, error) {
+func (m *MaybankProvider) VerifyWebhook(ctx context.Context, data map[string]string) (*WebhookResult, error) {
 	// TODO: Verify signature from raw data
 	return &WebhookResult{
 		Success: true,

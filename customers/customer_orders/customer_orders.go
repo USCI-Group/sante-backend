@@ -16,6 +16,7 @@ import (
 	"encore.app/common"
 	"encore.app/common/constants"
 	"encore.app/common/payment"
+	"encore.app/identity"
 	"encore.app/sante_admin/products"
 	"encore.app/customers/customer_common"
 	"encore.app/customers/customer_payments"
@@ -151,6 +152,9 @@ type CreateOrderRequest struct {
 	CustomerAddress         *string          `json:"customer_address"`
 	CustomerLatitude        *float32         `json:"customer_latitude"`
 	CustomerLongitude       *float32         `json:"customer_longitude"`
+	// Student Info for School-Based Outlets
+	StudentID               string           `json:"student_id"`
+	ParentPhone             string           `json:"parent_phone"`
 	EstimatedOrderReadyTime *time.Time       `json:"estimated_order_ready_time"`
 	MaxOrderReadyTime       *time.Time       `json:"max_order_ready_time"`
 	NewOrderReadyTime       *time.Time       `json:"new_order_ready_time"`
@@ -797,7 +801,7 @@ func (s *Service) CustomerCreateOrder(ctx context.Context, req *CreateOrderReque
 		}
 	}()
 
-	order, err := CreateOrder(trx, req)
+	order, err := CreateOrder(ctx, trx, req)
 	if err != nil {
 		trx.Rollback()
 		return nil, err
@@ -848,11 +852,31 @@ func (s *Service) CustomerCreateOrder(ctx context.Context, req *CreateOrderReque
 }
 
 // create order for customer only this
-func CreateOrder(trx *gorm.DB, req *CreateOrderRequest) (*models.Order, error) {
+func CreateOrder(ctx context.Context, trx *gorm.DB, req *CreateOrderRequest) (*models.Order, error) {
 	var outlet models.Outlet
 	result := trx.Where("id=?", req.OutletID).First(&outlet)
 	if result.Error != nil {
 		return nil, result.Error
+	}
+
+	// SCHOOL INTEGRATION: Trigger identity check if outlet is school-based
+	if outlet.IsSchoolOutlet {
+		if req.StudentID == "" {
+			return nil, &errs.Error{Code: errs.InvalidArgument, Message: "StudentID is required for this school-based outlet"}
+		}
+		
+		// Internal call to identity service proxy
+		verifyResp, err := identity.VerifyStudent(ctx, &identity.VerifyRequest{
+			StudentID:   req.StudentID,
+			ParentPhone: req.ParentPhone,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to verify student identity: %v", err)
+		}
+		if !verifyResp.IsValid {
+			return nil, &errs.Error{Code: errs.PermissionDenied, Message: "Identity verification failed for student " + req.StudentID}
+		}
+		// Verification successful, proceed to create order
 	}
 
 	// Generate order number
@@ -934,6 +958,9 @@ func CreateOrder(trx *gorm.DB, req *CreateOrderRequest) (*models.Order, error) {
 		GrabShortOrderNum:       req.GrabShortOrderNum,
 		VoucherID:               req.VoucherApplied.VoucherID,
 		CustomerVoucherID:       req.VoucherApplied.CustomerVoucherID,
+		// Map Student Info
+		StudentID:               &req.StudentID,
+		ParentPhone:             &req.ParentPhone,
 		CreatedAt:               todayFull,
 		UpdatedAt:               nil,
 		DeletedAt:               gorm.DeletedAt{},

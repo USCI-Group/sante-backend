@@ -35,7 +35,7 @@ func (p *CyberSourceProvider) InitiatePayment(ctx context.Context, order *models
 		"access_key":           p.AccessKey,
 		"profile_id":           p.ProfileID,
 		"transaction_uuid":     txnUUID.String(),
-		"signed_field_names":   "access_key,profile_id,transaction_uuid,signed_field_names,unsigned_field_names,signed_date_time,locale,transaction_type,reference_number,amount,currency",
+		"signed_field_names":   "access_key,profile_id,transaction_uuid,signed_field_names,unsigned_field_names,signed_date_time,locale,transaction_type,reference_number,amount,currency,payment_method",
 		"unsigned_field_names": "",
 		"signed_date_time":     signedDateTime,
 		"locale":               "en",
@@ -43,6 +43,7 @@ func (p *CyberSourceProvider) InitiatePayment(ctx context.Context, order *models
 		"reference_number":     referenceNumber,
 		"amount":               fmt.Sprintf("%.2f", order.RoundedNetTotal),
 		"currency":             "MYR",
+		"payment_method":       "card",
 	}
 
 	// Generate Signature
@@ -63,13 +64,7 @@ func (p *CyberSourceProvider) InitiatePayment(ctx context.Context, order *models
 	}, nil
 }
 
-func (p *CyberSourceProvider) VerifyWebhook(ctx context.Context, rawData interface{}) (*WebhookResult, error) {
-	// Secure Acceptance Webhook sends data essentially as POST form variables,
-	// Assuming rawData is a map[string]string constructed by the handler
-	data, ok := rawData.(map[string]string)
-	if !ok {
-		return nil, fmt.Errorf("invalid webhook data type, expected map[string]string")
-	}
+func (p *CyberSourceProvider) VerifyWebhook(ctx context.Context, data map[string]string) (*WebhookResult, error) {
 
 	// Extract the signature CyberSource sent us
 	receivedSignature := data["signature"]

@@ -10,7 +10,7 @@ type PaymentGateway interface {
 	// InitiatePayment generates the redirect URL and any required form data
 	InitiatePayment(ctx context.Context, order *models.Order) (*InitiationResponse, error)
 	// VerifyWebhook processes the bank's callback data
-	VerifyWebhook(ctx context.Context, rawData interface{}) (*WebhookResult, error)
+	VerifyWebhook(ctx context.Context, payload map[string]string) (*WebhookResult, error)
 	// CheckStatus manually queries the bank for transaction status
 	CheckStatus(ctx context.Context, transactionReference string) (*StatusResult, error)
 }

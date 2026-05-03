@@ -51,6 +51,7 @@ type Outlet struct {
 	OperationSchedules []OutletOperationSchedule `json:"operation_schedules" gorm:"foreignKey:OutletID"`
 	OperationTimeSlots []OutletOperationTimeSlot `json:"operation_time_slots" gorm:"foreignKey:OutletID"`
 	OnlineOrderEnabled bool                      `json:"online_order_enabled" gorm:"type:boolean; default:true"`
+	IsSchoolOutlet     bool                      `json:"is_school_outlet" gorm:"type:boolean; default:false"`
 	CreatedAt          time.Time                 `json:"created_at"`
 	UpdatedAt          *time.Time                `json:"updated_at"`
 	DeletedAt          gorm.DeletedAt            `json:"deleted_at,omitempty"`

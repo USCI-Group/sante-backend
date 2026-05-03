@@ -181,6 +181,9 @@ type OrderDetails struct {
 	Voucher                 *Voucher         `json:"voucher" gorm:"foreignKey:VoucherID"`
 	CustomerVoucherID       *uuid.UUID       `json:"customer_voucher_id" gorm:"type:uuid"`
 	CustomerVoucher         *CustomerVoucher `json:"customer_voucher" gorm:"foreignKey:CustomerVoucherID"`
+	// Student Info for School-Based Outlets
+	StudentID               *string          `json:"student_id" gorm:"type:varchar(50)"`
+	ParentPhone             *string          `json:"parent_phone" gorm:"type:varchar(50)"`
 	TrackingInfo            *TrackingInfo    `json:"tracking_info" gorm:"embedded"`
 	CreatedAt               time.Time        `json:"created_at"`
 	UpdatedAt               *time.Time       `json:"updated_at"`

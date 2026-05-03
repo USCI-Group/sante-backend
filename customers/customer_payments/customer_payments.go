@@ -2,8 +2,11 @@ package customer_payments
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"encore.app/common/constants"
@@ -379,46 +382,82 @@ func (s *Service) GetPaymentMethods(ctx context.Context, req *GetPaymentMethodsR
 
 // API to receive bank callback (Webhook)
 //
-//encore:api public method=POST path=/api/customers/payments/webhook/:provider
-func (s *Service) PaymentWebhook(ctx context.Context, provider string, req interface{}) error {
+//encore:api public raw method=POST path=/api/customers/payments/webhook/:provider
+func (s *Service) PaymentWebhook(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	provider := ""
+	// Path parameters in raw endpoints are available via r.PathValue in Go 1.22+ 
+	// or Encore might provide them in a different way. 
+	// For Encore raw endpoints, we usually use the URL.
+	segments := strings.Split(r.URL.Path, "/")
+	if len(segments) > 0 {
+		provider = segments[len(segments)-1]
+	}
+
+	// Parse JSON body
+	var req map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid json", http.StatusBadRequest)
+		return
+	}
+
 	trx := s.db.Begin()
 	if trx.Error != nil {
-		return trx.Error
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
 	}
 	defer trx.Rollback()
 
 	gateway, err := getGateway(payment.Provider(provider))
 	if err != nil {
-		return err
+		http.Error(w, "invalid provider", http.StatusBadRequest)
+		return
 	}
 
 	result, err := gateway.VerifyWebhook(ctx, req)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	if result.Success {
-		// Update transaction and order
 		var transaction models.Transaction
 		if err := trx.Where("gateway_transaction_id = ?", result.TransactionID).First(&transaction).Error; err != nil {
-			return err
+			http.Error(w, "transaction not found", http.StatusNotFound)
+			return
 		}
 
 		transaction.PaymentStatus = models.PaymentStatusCompleted
 		if err := trx.Save(&transaction).Error; err != nil {
-			return err
+			http.Error(w, "failed to update transaction", http.StatusInternalServerError)
+			return
 		}
 
 		// Update order status
-		if err := trx.Model(&models.Order{}).Where("id = ?", transaction.OrderID).Updates(map[string]interface{}{
-			"payment_status": models.PaymentStatusCompleted,
-			"order_status":   models.OrderStatusCompleted,
-		}).Error; err != nil {
-			return err
+		if err := trx.Model(&models.Order{}).Where("id = ?", transaction.OrderID).Update("status", models.OrderStatusPreparing).Error; err != nil {
+			http.Error(w, "failed to update order", http.StatusInternalServerError)
+			return
 		}
+
+		// Notify POS
+		customer_common.SendNotificationForPayment(
+			ctx,
+			trx,
+			transaction.OrderID,
+			models.PaymentMethod(transaction.PaymentMethod),
+			models.MembershipAppOrderNotification,
+			&transaction,
+			nil,
+		)
 	}
 
-	return trx.Commit().Error
+	if err := trx.Commit().Error; err != nil {
+		http.Error(w, "commit error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
 
 // API to repayment for existing order
