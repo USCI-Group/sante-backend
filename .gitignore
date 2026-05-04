@@ -3,8 +3,6 @@ encore.gen.go
 encore.gen.cue
 /encore.gen
 .env
-/database/migrations/*
-/database/migrations/atlas.sum
 /developer_usage
 .DS_Store
 pos_websocket_poc.go
