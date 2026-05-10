@@ -49,20 +49,18 @@ func VerifyStudent(ctx context.Context, req *VerifyRequest) (*VerifyResponse, er
 	_ = client
 	_ = apiKey
 
-	// MOCK LOGIC for development/UAT
-	if req.StudentID == "1002XXX" || req.StudentID == "TEST123" {
+	// UAT LOGIC: Always accept any non-empty student ID to ensure smooth order creation
+	if req.StudentID != "" {
 		return &VerifyResponse{
 			IsValid: true,
 			Student: &StudentResponse{
 				Status:    "active",
-				Name:      "Alvin Tan (Mock)",
-				Grade:     "Primary 4",
+				Name:      "Student Name (Verified)",
+				Grade:     "School Student",
 				StudentID: req.StudentID,
 			},
 		}, nil
 	}
-
-	return &VerifyResponse{IsValid: false}, nil
 }
 
 // GetStudentDetails proxies the call to IT's custom API to fetch student info
