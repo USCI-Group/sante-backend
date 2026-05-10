@@ -120,6 +120,18 @@ func seedOfficialMenu(db *gorm.DB) error {
 				{Name: "Beefy Mushroom Melt", Price: 27.90, Description: "100% Aussie beef patty with melted cheddar, lettuce and pickles, served with creamy mushroom sauce on the side."},
 				{Name: "The Santé Clucker", Price: 13.90, Description: "Grilled chicken thigh topped with crisp lettuce, tomato, and pickles, served with a side of our signature Santé sauce."},
 				{Name: "Thai-namite Stack", Price: 26.90, Description: "100% Aussie beef patty layered with fresh lettuce, tomato, spicy jalapeño and caramelised onions, with a side of spicy green mayo."},
+				{Name: "The Cowboy Stack", Price: 35.90, Description: "Double beef patty with smoked beef strips, crispy onions, and our special BBQ sauce."},
+				{Name: "The King Garoupa", Price: 29.90, Description: "Premium Garoupa fish fillet, perfectly seared and served with our signature house sauce."},
+				{Name: "The Mushroom Stack", Price: 15.90, Description: "Triple mushroom medley with melted cheese and fresh greens."},
+				{Name: "Teriyaki Tuna Delight", Price: 19.90, Description: "Fresh tuna steak glazed with house-made teriyaki sauce."},
+			}
+			for _, p := range products {
+				_seedProduct(db, p, existing.ID, bizID)
+			}
+		} else if cat.Name == "Sandwiches" {
+			products := []models.Product{
+				{Name: "Sunny Side Stack", Price: 9.90, Description: "Classic wholemeal sandwich with a perfectly cooked sunny-side-up egg and fresh greens."},
+				{Name: "Triple Cajun Medley", Price: 26.00, Description: "Triple-layered artisan sandwich with Cajun-spiced proteins and fresh veggies."},
 			}
 			for _, p := range products {
 				_seedProduct(db, p, existing.ID, bizID)
