@@ -29,7 +29,7 @@ type VerifyResponse struct {
 
 // VerifyStudent verifies a student via the UCSI Custom API
 //
-//encore:api auth method=POST path=/api/identity/verify
+//encore:api public method=POST path=/api/identity/verify
 func VerifyStudent(ctx context.Context, req *VerifyRequest) (*VerifyResponse, error) {
 	apiURL := os.Getenv("UCSI_DBS_API_URL")
 	apiKey := os.Getenv("UCSI_DBS_API_KEY")
