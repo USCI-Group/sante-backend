@@ -283,13 +283,14 @@ func (s *Service) CustomerLogin(ctx context.Context, params *LoginParams) (*Logi
 		}
 	}
 
-	// check if customer is verified
+	/* UAT BYPASS: Allow login without verification for now
 	if !customer.EmailVerified {
 		return nil, &errs.Error{
 			Code:    errs.Unauthenticated,
 			Message: "Email is not verified",
 		}
 	}
+	*/
 
 	if !customer.IsActive {
 		return nil, &errs.Error{
