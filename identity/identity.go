@@ -61,6 +61,7 @@ func VerifyStudent(ctx context.Context, req *VerifyRequest) (*VerifyResponse, er
 			},
 		}, nil
 	}
+	return &VerifyResponse{IsValid: false}, nil
 }
 
 // GetStudentDetails proxies the call to IT's custom API to fetch student info
